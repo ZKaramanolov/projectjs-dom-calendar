@@ -1,23 +1,38 @@
 var $$ = function(id) {
     var el;
 
-    function getElement(id) {
-        if (el) return el
-        return document.querySelector(id);
-    }
-
     var obj = {
         //chainable methods
-        addChild: function(element, id = '') {
+        printElement: function() {
+            console.log(el);
+            return obj;
+        },
 
-            if (typeof element != 'string' || typeof id != 'string') {
+        addChild: function(element) {
+
+            if (typeof element != 'string' && typeof element != 'object' ) {
                 console.error('Parameters must be from type string!');
                 return obj;
             }
 
+            if (typeof element == 'object' ) {
+                el.prepend(ele);
+                return obj;
+            }
+
             var ele = this.createElement(element);
-            ele.setAttribute("id", id);
-            el.appendChild(ele);
+            el.prepend(ele);
+            return obj;
+        },
+
+        appendHTML: function(html){
+
+            if (typeof html != 'string') {
+                console.error('html parameter must be from type string!');
+                return obj;
+            }
+
+            el.innerHTML += html;
             return obj;
         },
 
@@ -32,14 +47,14 @@ var $$ = function(id) {
                 index = 0;
             }
 
-            var child = el.childNodes;
+            var children = el.children;
 
-            if (index >= child.length) {
+            if (index >= children.length) {
                 console.error('This index of child does not exist!');
                 return;
             }
 
-            el = child[index];
+            el = children[index];
             return obj;
         },
 
@@ -178,12 +193,22 @@ var $$ = function(id) {
             return el.innerHTML;
         },
 
+        getChildren: function() {
+            var children = el.children;
+            return children;
+        },
+
+        getElement: function(id) {
+            if (el) return el
+            return document.querySelector(id);
+        },
+
         deleteElement: function() {
             el.parentNode.removeChild(el);
         },
     };
 
-    el = getElement(id);
+    el = obj.getElement(id);
     return obj;
 }
 
