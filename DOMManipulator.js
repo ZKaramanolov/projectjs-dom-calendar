@@ -16,12 +16,14 @@ var $$ = function(id) {
             }
 
             if (typeof element == 'object' ) {
-                el.prepend(ele);
+                el.prepend(element);
+                el = element;
                 return obj;
             }
 
             var ele = this.createElement(element);
             el.prepend(ele);
+            el = ele
             return obj;
         },
 
@@ -172,6 +174,18 @@ var $$ = function(id) {
             return obj;
         },
 
+        setAttr: function() {
+            if (arguments.length % 2 == 1) {
+                console.error('setAttr need at least 2 arguments!');
+                return obj;
+            }
+
+            for (var i = 0; i < arguments.length; i+=2) {
+                el.setAttribute(arguments[i], arguments[i+1]);
+            }
+            return obj;
+        },
+
         //Can not be chained
         createElement: function(element) {
 
@@ -209,6 +223,12 @@ var $$ = function(id) {
     };
 
     el = obj.getElement(id);
+    var splitID = id.split('');
+
+    if (splitID[0] != '#' && splitID[0] != '.' && id != '*') {
+        console.error('Wrong identifier!');
+        return false;
+    }
     return obj;
 }
 

@@ -2,11 +2,47 @@ var Calendar = {
     year: 2018,
     month: 1,
     days: [],
+    selectedDay: 0,
 
     setupCalendar: function() {
-        $$('#body').addChild('div').selectChild().editId('controls').addStyles({position: 'relative', padding: '10px', textAlign: 'center'});
+        $$('*').addStyles({boxSizing: 'border-box', display: 'flex'});
+        $$('#body').addStyles({margin: '0px'});
+        $$('#body').addChild('div').editId('controls').addStyles({position: 'relative', padding: '10px', textAlign: 'center'});
 
-        $$('#controls').addChild('select').selectChild().editId('select');
+        $$('#body').addChild('div').editId('overlay').addStyles({
+            top: '0px',
+            left: '0px',
+            position: 'fixed',
+            width: '100%',
+            height: '100%',
+            background: 'grey',
+            opacity: '0.5',
+            textAlign: 'center',
+            zIndex: '1',
+            display: 'none'
+        }).addEvent('click', function() {
+            $$('#overlay').addStyles({display: 'none'});
+            $$('#fileInputWrapper').addStyles({display: 'none'});
+        });
+
+        $$('#body').addChild('div').editId('fileInputWrapper').addStyles({
+            position: 'absolute',
+            width: '300px',
+            height: '200px',
+            background: '#1b2433',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            display: 'none',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: '2',
+            borderRadius: '10%',
+        }).addChild('input').setAttr('type', 'file').editId('file').addEvent('change', function() {
+            Calendar.readJSON();
+        });;
+
+        $$('#controls').addChild('select').editId('select');
         var opt = $$('#select').getElement();
         for (var i = 1; i <= 12; i++) {
             opt.options[i] = new Option(i);
@@ -15,26 +51,26 @@ var Calendar = {
             Calendar.setMonth(this.value);
         });
 
-        $$('#controls').addChild('div').selectChild().editId('month').addStyles({display:'inline', padding: '10px'});
-        $$('#month').addChild('button').selectChild().editText('>').addEvent('click', this.changeToNextMonth);
-        $$('#month').addChild('span').selectChild().editText('Month').addStyles({padding: '10px'});
-        $$('#month').addChild('button').selectChild().editText('<').addEvent('click', this.changeToPreviousMonth);
+        $$('#controls').addChild('div').editId('month').addStyles({display:'inline', padding: '10px'});
+        $$('#month').addChild('button').editText('>').addEvent('click', this.changeToNextMonth);
+        $$('#month').addChild('span').editText('Month').addStyles({padding: '10px'});
+        $$('#month').addChild('button').editText('<').addEvent('click', this.changeToPreviousMonth);
 
-        $$('#controls').addChild('div').selectChild().editId('year').addStyles({display:'inline'});
-        $$('#year').addChild('button').selectChild().editText('>').addEvent('click', this.changeToNextYear);
-        $$('#year').addChild('span').selectChild().editText('Year').addStyles({padding: '10px'});
-        $$('#year').addChild('button').selectChild().editText('<').addEvent('click', this.changeToPreviousYear);
+        $$('#controls').addChild('div').editId('year').addStyles({display:'inline'});
+        $$('#year').addChild('button').editText('>').addEvent('click', this.changeToNextYear);
+        $$('#year').addChild('span').editText('Year').addStyles({padding: '10px'});
+        $$('#year').addChild('button').editText('<').addEvent('click', this.changeToPreviousYear);
 
 
         this.setupTable();
     },
 
     setupTable: function() {
-        $$('#body').addChild('table')
-            .selectChild(0).addStyles({border: 'solid', position: 'relative'}).addChild('tbody').editId('table')
-            .selectChild(0).editId('t');
-        $$('#body').addChild('span').selectChild(0).editId('title').addStyles({fontSize: '45px', fontWeight:'700'});;
+        $$('#body').addChild('table').addStyles({border: 'solid', position: 'relative', margin: '10px'}).editId('table').addChild('tbody').editId('t');
+
+        $$('#body').addChild('span').editId('title');
         this.setupTableHead();
+
     },
 
     setupTableHead: function() {
@@ -61,7 +97,7 @@ var Calendar = {
     fillTableBody: function() {
         this.getDaysInMonth();
         var title = (Calendar.year + 1) + ' - ' + (Calendar.month + 1);
-        $$('#title').editText(title);
+        $$('#title').addStyles({fontSize: '45px', fontWeight:'700', margin: '20px'}).editText(title);
 
         var index = 0;
         while (index < this.days.length) {
@@ -81,21 +117,25 @@ var Calendar = {
     createRowWithDays: function(index) {
         var row = ``;
         var daysInWeek = 0;
-        var dayCSS = 'style=\'width: 125px; border-style:solid; border-width:1px; text-align: center; height:100px; font-size: 20px;\'';
-        var todayCSS = 'style=\'width: 125px; border-style:solid; border-width:2px; text-align: center; height:100px; color: red; font-size: 24px;\'';
+        var dayCSS = 'style=\'width: 125px; height: 100px; border-style:solid; border-width:1px; font-size: 20px; cursor: pointer;\'';
+        var todayCSS = 'style=\'width: 125px; height: 100px; border-style:solid; border-width:2px; color: red; font-size: 24px; cursor: pointer;\'';
         var today = new Date();
 
         while (daysInWeek < 7 ) {
             var dayFromWeekAsString = $$('#table-head').selectChild(daysInWeek).getText();
+            var day = this.days[index].dayFromMonth;
 
             if (dayFromWeekAsString == this.days[index].dayAsString) {
+
                 if (today.getDate() == this.days[index].dayFromMonth &&
                     today.getMonth() == Calendar.month &&
                     today.getFullYear() == (Calendar.year + 1)) {
-                    row += `<td ${todayCSS}>${this.days[index].dayFromMonth}</td>`;
+
+                    row += `<td><div onClick='Calendar.displayFileInput(this)' ${todayCSS}>${day}</div></td>`;
                     index++;
+
                 } else {
-                    row += `<td ${dayCSS}>${this.days[index].dayFromMonth}</td>`;
+                    row += `<td><div onClick='Calendar.displayFileInput(this)' ${dayCSS}>${day}</div></td>`;
                     index++;
                 }
             } else {
@@ -108,6 +148,29 @@ var Calendar = {
             }
         }
         return [row, index];
+    },
+
+    displayFileInput: function(t){
+        Calendar.selectedDay = t;
+        $$('#overlay').addStyles({display: 'block'});
+        $$('#fileInputWrapper').addStyles({display: 'flex'})
+    },
+
+    readJSON: function() {
+        var f = $$('#file').getElement().files[0];
+
+        var r = new FileReader();
+        r.readAsText(f);
+        r.addEventListener('load', function(e) {
+            var file = e.target.result;
+            var o = JSON.parse(file);
+
+            Calendar.selectedDay.innerHTML += '<br>' + o.Events[0].Name;
+            
+            $$('#overlay').addStyles({display: 'none'});
+            $$('#fileInputWrapper').addStyles({display: 'none'});
+        });
+        $$('#file').getElement().value = '';
     },
 
     getDaysInMonth: function() {
@@ -159,7 +222,7 @@ var Calendar = {
     resetTBody: function() {
         Calendar.days = [];
         $$('#t').deleteElement();
-        $$('#table').addChild('tbody').selectChild(0).editId('t');
+        $$('#table').addChild('tbody').editId('t');
         Calendar.fillTableBody();
     },
 }
